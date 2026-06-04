@@ -5,48 +5,48 @@
  * Each page owns its own ref table because tools address pages independently.
  */
 
-import type { Page } from "playwright";
+import type { Page } from "playwright"
 
 export interface RefRecord {
-    role: string;
-    name: string;
-    selector: string;
-    tag: string;
+    role: string
+    name: string
+    selector: string
+    tag: string
 }
 
-type Table = Map<number, RefRecord>;
+type Table = Map<number, RefRecord>
 
-const tables = new WeakMap<Page, Table>();
+const tables = new WeakMap<Page, Table>()
 
 export const refs = {
     reset(page: Page): void {
-        tables.set(page, new Map());
+        tables.set(page, new Map())
     },
 
     set(page: Page, ref: number, record: RefRecord): void {
-        let t = tables.get(page);
+        let t = tables.get(page)
         if (!t) {
-            t = new Map();
-            tables.set(page, t);
+            t = new Map()
+            tables.set(page, t)
         }
-        t.set(ref, record);
+        t.set(ref, record)
     },
 
     get(page: Page, ref: number): RefRecord | undefined {
-        return tables.get(page)?.get(ref);
+        return tables.get(page)?.get(ref)
     },
 
     require(page: Page, ref: number): RefRecord {
-        const r = tables.get(page)?.get(ref);
+        const r = tables.get(page)?.get(ref)
         if (!r) {
             throw new Error(
                 `stale or unknown ref=${ref}; call browser_snapshot to get fresh refs`,
-            );
+            )
         }
-        return r;
+        return r
     },
 
     size(page: Page): number {
-        return tables.get(page)?.size ?? 0;
+        return tables.get(page)?.size ?? 0
     },
-};
+}

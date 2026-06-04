@@ -23,6 +23,7 @@ browser_click(ref=N)         # act using a ref from the latest snapshot
 **Refs are valid only until the next browser action.** Every action returns
 a fresh snapshot, so you can chain `navigate → click → type` without calling
 `browser_snapshot` between them. Call `browser_snapshot` only when:
+
 - A page changes via JS without you triggering it (timers, XHR redraws).
 - You're starting work on a tab you didn't just act on.
 - The previous tool reported a stale-ref error.
@@ -59,8 +60,8 @@ flows you can't (CAPTCHAs, 2FA, password managers). Typical pattern:
 
 1. `browser_navigate("https://app.example.com/login")`
 2. Inspect snapshot; if you can fill the form, do so.
-3. If 2FA or CAPTCHA appears, tell the user: *"A login screen is open in
-   the shared browser — please complete login, then say 'continue'."*
+3. If 2FA or CAPTCHA appears, tell the user: _"A login screen is open in
+   the shared browser — please complete login, then say 'continue'."_
 4. After the user proceeds, call `browser_snapshot` and continue.
 
 The session persists, so subsequent pi runs are already logged in.

@@ -3,29 +3,29 @@
  * same page so two parallel tool calls do not race the DOM.
  */
 
-import type { Page } from "playwright";
+import type { Page } from "playwright"
 
-type Task<T> = () => Promise<T>;
+type Task<T> = () => Promise<T>
 
-const tails = new WeakMap<Page, Promise<unknown>>();
+const tails = new WeakMap<Page, Promise<unknown>>()
 
 export const mutex = {
     async run<T>(page: Page, task: Task<T>): Promise<T> {
-        const prev = tails.get(page) ?? Promise.resolve();
-        let release!: () => void;
+        const prev = tails.get(page) ?? Promise.resolve()
+        let release!: () => void
         const slot = new Promise<void>((r) => {
-            release = r;
-        });
-        const tail = prev.then(() => slot);
-        tails.set(page, tail);
+            release = r
+        })
+        const tail = prev.then(() => slot)
+        tails.set(page, tail)
         try {
-            await prev;
-            return await task();
+            await prev
+            return await task()
         } finally {
-            release();
+            release()
             if (tails.get(page) === tail) {
-                tails.delete(page);
+                tails.delete(page)
             }
         }
     },
-};
+}

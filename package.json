@@ -3,11 +3,11 @@
     "version": "0.1.0",
     "description": "Browser automation tools for pi via Playwright (shared Chromium across sessions)",
     "keywords": [
+        "automation",
+        "browser",
         "pi",
         "pi-package",
-        "browser",
-        "playwright",
-        "automation"
+        "playwright"
     ],
     "license": "MIT",
     "repository": {

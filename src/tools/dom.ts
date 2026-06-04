@@ -6,25 +6,25 @@
  * with a clear message asking for a fresh snapshot.
  */
 
-import { resolve as resolvePath } from "node:path";
-import { defineTool } from "@earendil-works/pi-coding-agent";
-import { Type } from "typebox";
-import { browser } from "../browser";
-import { mutex } from "../mutex";
-import { refs } from "../refs";
-import { captureSnapshot } from "../snapshot";
-import { shortError, withAbort } from "../util";
+import { resolve as resolvePath } from "node:path"
+import { defineTool } from "@earendil-works/pi-coding-agent"
+import { Type } from "typebox"
+import { browser } from "../browser"
+import { mutex } from "../mutex"
+import { refs } from "../refs"
+import { captureSnapshot } from "../snapshot"
+import { shortError, withAbort } from "../util"
 
-const ACT_TIMEOUT = 15_000;
+const ACT_TIMEOUT = 15_000
 
 interface ActDetails {
-    action: string;
-    ref?: number;
-    targetRole?: string;
-    targetName?: string;
-    url: string;
-    title: string;
-    refs: number;
+    action: string
+    ref?: number
+    targetRole?: string
+    targetName?: string
+    url: string
+    title: string
+    refs: number
 }
 
 export const snapshot = defineTool({
@@ -40,9 +40,9 @@ export const snapshot = defineTool({
     ],
     parameters: Type.Object({}),
     async execute(_id, _params, signal) {
-        const page = await browser.page();
+        const page = await browser.page()
         return mutex.run(page, async () => {
-            const snap = await withAbort(captureSnapshot(page), signal);
+            const snap = await withAbort(captureSnapshot(page), signal)
             return {
                 content: [{ type: "text" as const, text: snap.text }],
                 details: {
@@ -51,10 +51,10 @@ export const snapshot = defineTool({
                     title: snap.title,
                     refs: snap.count,
                 } satisfies ActDetails,
-            };
-        });
+            }
+        })
     },
-});
+})
 
 async function actOnRef(
     ref: number,
@@ -62,18 +62,18 @@ async function actOnRef(
     fn: (sel: string) => Promise<void>,
     action: string,
 ) {
-    const page = await browser.page();
+    const page = await browser.page()
     return mutex.run(page, async () => {
-        const record = refs.require(page, ref);
+        const record = refs.require(page, ref)
         try {
-            await withAbort(fn(record.selector), signal);
+            await withAbort(fn(record.selector), signal)
         } catch (e) {
-            throw new Error(`${action} failed on ref=${ref}: ${shortError(e)}`);
+            throw new Error(`${action} failed on ref=${ref}: ${shortError(e)}`)
         }
         // Many actions trigger navigation or DOM rerender; wait briefly
         // and re-snapshot.
-        await page.waitForLoadState("domcontentloaded").catch(() => {});
-        const snap = await captureSnapshot(page);
+        await page.waitForLoadState("domcontentloaded").catch(() => {})
+        const snap = await captureSnapshot(page)
         return {
             content: [{ type: "text" as const, text: snap.text }],
             details: {
@@ -85,8 +85,8 @@ async function actOnRef(
                 title: snap.title,
                 refs: snap.count,
             } satisfies ActDetails,
-        };
-    });
+        }
+    })
 }
 
 export const click = defineTool({
@@ -99,15 +99,15 @@ export const click = defineTool({
         ref: Type.Number({ description: "Ref id from browser_snapshot." }),
     }),
     async execute(_id, params, signal) {
-        const page = await browser.page();
+        const page = await browser.page()
         return actOnRef(
             params.ref,
             signal,
             (sel) => page.locator(sel).first().click({ timeout: ACT_TIMEOUT }),
             "click",
-        );
+        )
     },
-});
+})
 
 export const type = defineTool({
     name: "browser_type",
@@ -131,23 +131,23 @@ export const type = defineTool({
         ),
     }),
     async execute(_id, params, signal) {
-        const page = await browser.page();
-        const clear = params.clear ?? true;
+        const page = await browser.page()
+        const clear = params.clear ?? true
         return actOnRef(
             params.ref,
             signal,
             async (sel) => {
-                const loc = page.locator(sel).first();
-                if (clear) await loc.fill("", { timeout: ACT_TIMEOUT });
+                const loc = page.locator(sel).first()
+                if (clear) await loc.fill("", { timeout: ACT_TIMEOUT })
                 await loc.pressSequentially(params.text, {
                     timeout: ACT_TIMEOUT,
-                });
-                if (params.submit) await loc.press("Enter");
+                })
+                if (params.submit) await loc.press("Enter")
             },
             "type",
-        );
+        )
     },
-});
+})
 
 export const hover = defineTool({
     name: "browser_hover",
@@ -158,15 +158,15 @@ export const hover = defineTool({
         ref: Type.Number(),
     }),
     async execute(_id, params, signal) {
-        const page = await browser.page();
+        const page = await browser.page()
         return actOnRef(
             params.ref,
             signal,
             (sel) => page.locator(sel).first().hover({ timeout: ACT_TIMEOUT }),
             "hover",
-        );
+        )
     },
-});
+})
 
 export const select = defineTool({
     name: "browser_select",
@@ -181,7 +181,7 @@ export const select = defineTool({
         }),
     }),
     async execute(_id, params, signal) {
-        const page = await browser.page();
+        const page = await browser.page()
         return actOnRef(
             params.ref,
             signal,
@@ -189,12 +189,12 @@ export const select = defineTool({
                 await page
                     .locator(sel)
                     .first()
-                    .selectOption(params.values, { timeout: ACT_TIMEOUT });
+                    .selectOption(params.values, { timeout: ACT_TIMEOUT })
             },
             "select",
-        );
+        )
     },
-});
+})
 
 export const upload = defineTool({
     name: "browser_upload",
@@ -208,8 +208,8 @@ export const upload = defineTool({
         }),
     }),
     async execute(_id, params, signal, _onUpdate, ctx) {
-        const page = await browser.page();
-        const abs = params.paths.map((p) => resolvePath(ctx.cwd, p));
+        const page = await browser.page()
+        const abs = params.paths.map((p) => resolvePath(ctx.cwd, p))
         return actOnRef(
             params.ref,
             signal,
@@ -217,9 +217,9 @@ export const upload = defineTool({
                 await page
                     .locator(sel)
                     .first()
-                    .setInputFiles(abs, { timeout: ACT_TIMEOUT });
+                    .setInputFiles(abs, { timeout: ACT_TIMEOUT })
             },
             "upload",
-        );
+        )
     },
-});
+})

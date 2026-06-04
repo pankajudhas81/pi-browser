@@ -8,12 +8,12 @@ import {
     defineTool,
     formatSize,
     truncateTail,
-} from "@earendil-works/pi-coding-agent";
-import { Type } from "typebox";
-import { browser } from "../browser";
-import { mutex } from "../mutex";
-import { refs } from "../refs";
-import { shortError, withAbort } from "../util";
+} from "@earendil-works/pi-coding-agent"
+import { Type } from "typebox"
+import { browser } from "../browser"
+import { mutex } from "../mutex"
+import { refs } from "../refs"
+import { shortError, withAbort } from "../util"
 
 export const screenshot = defineTool({
     name: "browser_screenshot",
@@ -39,19 +39,19 @@ export const screenshot = defineTool({
         ),
     }),
     async execute(_id, params, signal) {
-        const page = await browser.page();
+        const page = await browser.page()
         return mutex.run(page, async () => {
             try {
-                let buf: Buffer;
+                let buf: Buffer
                 if (params.ref !== undefined) {
-                    const record = refs.require(page, params.ref);
+                    const record = refs.require(page, params.ref)
                     buf = await withAbort(
                         page.locator(record.selector).first().screenshot({
                             type: "png",
                             timeout: 15_000,
                         }),
                         signal,
-                    );
+                    )
                 } else {
                     buf = await withAbort(
                         page.screenshot({
@@ -60,7 +60,7 @@ export const screenshot = defineTool({
                             timeout: 30_000,
                         }),
                         signal,
-                    );
+                    )
                 }
                 return {
                     content: [
@@ -77,13 +77,13 @@ export const screenshot = defineTool({
                         fullPage: params.fullPage ?? false,
                         ref: params.ref,
                     },
-                };
+                }
             } catch (e) {
-                throw new Error(`screenshot failed: ${shortError(e)}`);
+                throw new Error(`screenshot failed: ${shortError(e)}`)
             }
-        });
+        })
     },
-});
+})
 
 export const evalScript = defineTool({
     name: "browser_eval",
@@ -103,7 +103,7 @@ export const evalScript = defineTool({
         }),
     }),
     async execute(_id, params, signal) {
-        const page = await browser.page();
+        const page = await browser.page()
         return mutex.run(page, async () => {
             try {
                 // Playwright evaluates the string in the page context, not
@@ -112,24 +112,24 @@ export const evalScript = defineTool({
                 const value = (await withAbort(
                     page.evaluate(params.script) as Promise<unknown>,
                     signal,
-                )) as unknown;
-                const text = stringifySafe(value);
+                )) as unknown
+                const text = stringifySafe(value)
                 return {
                     content: [{ type: "text" as const, text }],
                     details: { url: page.url(), bytes: text.length },
-                };
+                }
             } catch (e) {
-                throw new Error(`eval failed: ${shortError(e)}`);
+                throw new Error(`eval failed: ${shortError(e)}`)
             }
-        });
+        })
     },
-});
+})
 
 interface ConsoleEntry {
-    level: string;
-    text: string;
-    url: string;
-    ts: number;
+    level: string
+    text: string
+    url: string
+    ts: number
 }
 
 export const consoleTool = defineTool({
@@ -144,24 +144,24 @@ export const consoleTool = defineTool({
         ),
     }),
     async execute(_id, params) {
-        const page = await browser.page();
-        const all = browser.consoleBuffer(page);
-        const limit = Math.max(1, Math.min(200, params.limit ?? 50));
-        const entries: ConsoleEntry[] = all.slice(-limit);
-        if (params.clear) browser.clearConsole(page);
+        const page = await browser.page()
+        const all = browser.consoleBuffer(page)
+        const limit = Math.max(1, Math.min(200, params.limit ?? 50))
+        const entries: ConsoleEntry[] = all.slice(-limit)
+        if (params.clear) browser.clearConsole(page)
         const raw = entries
             .map(
                 (e) =>
                     `[${new Date(e.ts).toISOString()}] ${e.level}: ${e.text}`,
             )
-            .join("\n");
+            .join("\n")
         const truncation = truncateTail(raw, {
             maxLines: DEFAULT_MAX_LINES,
             maxBytes: DEFAULT_MAX_BYTES,
-        });
-        let body = truncation.content || "(no console messages)";
+        })
+        let body = truncation.content || "(no console messages)"
         if (truncation.truncated) {
-            body += `\n\n[Console buffer truncated: showing ${truncation.outputLines} of ${truncation.totalLines} lines]`;
+            body += `\n\n[Console buffer truncated: showing ${truncation.outputLines} of ${truncation.totalLines} lines]`
         }
         return {
             content: [{ type: "text" as const, text: body }],
@@ -170,19 +170,19 @@ export const consoleTool = defineTool({
                 entries: entries.length,
                 cleared: params.clear === true,
             },
-        };
+        }
     },
-});
+})
 
 function stringifySafe(value: unknown): string {
-    if (value === undefined) return "undefined";
-    if (value === null) return "null";
-    if (typeof value === "string") return value;
+    if (value === undefined) return "undefined"
+    if (value === null) return "null"
+    if (typeof value === "string") return value
     if (typeof value === "number" || typeof value === "boolean")
-        return String(value);
+        return String(value)
     try {
-        return JSON.stringify(value, null, 2) ?? String(value);
+        return JSON.stringify(value, null, 2) ?? String(value)
     } catch {
-        return String(value);
+        return String(value)
     }
 }

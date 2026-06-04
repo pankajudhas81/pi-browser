@@ -19,8 +19,8 @@
  *   /browser-headless toggle headless mode for the next launch
  */
 
-import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
-import { browser } from "./browser";
+import type { ExtensionAPI } from "@earendil-works/pi-coding-agent"
+import { browser } from "./browser"
 import {
     click,
     hover,
@@ -28,11 +28,11 @@ import {
     snapshot,
     type as typeTool,
     upload,
-} from "./tools/dom";
-import { consoleTool, evalScript, screenshot } from "./tools/io";
-import { back, forward, navigate, waitFor } from "./tools/nav";
-import { tabsClose, tabsList, tabsNew, tabsSelect } from "./tools/tabs";
-import { shortError } from "./util";
+} from "./tools/dom"
+import { consoleTool, evalScript, screenshot } from "./tools/io"
+import { back, forward, navigate, waitFor } from "./tools/nav"
+import { tabsClose, tabsList, tabsNew, tabsSelect } from "./tools/tabs"
+import { shortError } from "./util"
 
 const BROWSER_TOOLS = [
     navigate,
@@ -52,59 +52,59 @@ const BROWSER_TOOLS = [
     tabsNew,
     tabsSelect,
     tabsClose,
-];
+]
 
 export default function (pi: ExtensionAPI) {
     pi.registerFlag("browser-headless", {
         description: "Launch the shared Chromium in headless mode",
         type: "boolean",
         default: false,
-    });
+    })
 
     for (const tool of BROWSER_TOOLS) {
-        pi.registerTool(tool);
+        pi.registerTool(tool)
     }
 
     pi.on("session_start", async (_event, ctx) => {
-        if (pi.getFlag("browser-headless")) browser.setHeadless(true);
-        const s = browser.status();
+        if (pi.getFlag("browser-headless")) browser.setHeadless(true)
+        const s = browser.status()
         if (s.connected && s.endpoint) {
-            ctx.ui.setStatus("browser", footerLabel());
+            ctx.ui.setStatus("browser", footerLabel())
         }
-    });
+    })
 
     pi.on("tool_execution_end", async (event, ctx) => {
-        if (!event.toolName.startsWith("browser_")) return;
-        ctx.ui.setStatus("browser", footerLabel());
-    });
+        if (!event.toolName.startsWith("browser_")) return
+        ctx.ui.setStatus("browser", footerLabel())
+    })
 
     pi.on("session_shutdown", async () => {
         // Disconnect this session's pages; shared Chromium stays up.
-        await browser.detach();
-    });
+        await browser.detach()
+    })
 
     pi.registerCommand("browser-status", {
         description: "Show shared Chromium status",
         handler: async (_args, ctx) => {
-            const s = browser.status();
+            const s = browser.status()
             if (!s.connected && !s.endpoint) {
                 ctx.ui.notify(
                     "browser: not running. First browser_* tool call will launch it.",
                     "info",
-                );
-                return;
+                )
+                return
             }
-            const ep = s.endpoint;
+            const ep = s.endpoint
             const lines = [
                 `connected: ${s.connected}`,
                 `tabs (this session): ${s.tabs}`,
                 ep ? `endpoint: ${ep.httpEndpoint} (pid ${ep.pid})` : "",
                 ep ? `started: ${new Date(ep.startedAt).toISOString()}` : "",
                 `headless: ${browser.isHeadless()}`,
-            ].filter(Boolean);
-            ctx.ui.notify(lines.join("\n"), "info");
+            ].filter(Boolean)
+            ctx.ui.notify(lines.join("\n"), "info")
         },
-    });
+    })
 
     pi.registerCommand("browser-quit", {
         description:
@@ -113,38 +113,38 @@ export default function (pi: ExtensionAPI) {
             const ok = await ctx.ui.confirm(
                 "browser-quit",
                 "Kill the shared Chromium? This affects all running pi sessions.",
-            );
-            if (!ok) return;
+            )
+            if (!ok) return
             try {
-                const r = await browser.quitShared();
+                const r = await browser.quitShared()
                 ctx.ui.notify(
                     r.killed
                         ? `browser: terminated (${r.reason})`
                         : `browser: ${r.reason}`,
                     r.killed ? "info" : "warning",
-                );
-                ctx.ui.setStatus("browser", undefined);
+                )
+                ctx.ui.setStatus("browser", undefined)
             } catch (e) {
-                ctx.ui.notify(`browser-quit failed: ${shortError(e)}`, "error");
+                ctx.ui.notify(`browser-quit failed: ${shortError(e)}`, "error")
             }
         },
-    });
+    })
 
     pi.registerCommand("browser-headless", {
         description: "Toggle headless mode for the next browser launch",
         handler: async (_args, ctx) => {
-            const next = !browser.isHeadless();
-            browser.setHeadless(next);
+            const next = !browser.isHeadless()
+            browser.setHeadless(next)
             ctx.ui.notify(
                 `browser: headless=${next} (effective after /browser-quit + relaunch)`,
                 "info",
-            );
+            )
         },
-    });
+    })
 }
 
 function footerLabel(): string {
-    const s = browser.status();
-    if (!s.connected) return "browser: off";
-    return `browser: ${s.tabs} tab${s.tabs === 1 ? "" : "s"}`;
+    const s = browser.status()
+    if (!s.connected) return "browser: off"
+    return `browser: ${s.tabs} tab${s.tabs === 1 ? "" : "s"}`
 }

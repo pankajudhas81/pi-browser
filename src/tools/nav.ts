@@ -3,20 +3,20 @@
  * browser_wait_for.
  */
 
-import { StringEnum } from "@earendil-works/pi-ai";
-import { defineTool } from "@earendil-works/pi-coding-agent";
-import { Type } from "typebox";
-import { browser } from "../browser";
-import { mutex } from "../mutex";
-import { captureSnapshot } from "../snapshot";
-import { shortError, withAbort } from "../util";
+import { StringEnum } from "@earendil-works/pi-ai"
+import { defineTool } from "@earendil-works/pi-coding-agent"
+import { Type } from "typebox"
+import { browser } from "../browser"
+import { mutex } from "../mutex"
+import { captureSnapshot } from "../snapshot"
+import { shortError, withAbort } from "../util"
 
-const NAV_TIMEOUT = 30_000;
+const NAV_TIMEOUT = 30_000
 
 interface NavDetails {
-    url: string;
-    title: string;
-    refs: number;
+    url: string
+    title: string
+    refs: number
 }
 
 export const navigate = defineTool({
@@ -33,7 +33,7 @@ export const navigate = defineTool({
         url: Type.String({ description: "Absolute URL to open." }),
     }),
     async execute(_id, params, signal) {
-        const page = await browser.page();
+        const page = await browser.page()
         return mutex.run(page, async () => {
             try {
                 await withAbort(
@@ -42,23 +42,23 @@ export const navigate = defineTool({
                         timeout: NAV_TIMEOUT,
                     }),
                     signal,
-                );
+                )
             } catch (e) {
-                throw new Error(`navigate failed: ${shortError(e)}`);
+                throw new Error(`navigate failed: ${shortError(e)}`)
             }
-            const snap = await captureSnapshot(page);
+            const snap = await captureSnapshot(page)
             const details: NavDetails = {
                 url: snap.url,
                 title: snap.title,
                 refs: snap.count,
-            };
+            }
             return {
                 content: [{ type: "text" as const, text: snap.text }],
                 details,
-            };
-        });
+            }
+        })
     },
-});
+})
 
 export const back = defineTool({
     name: "browser_back",
@@ -66,7 +66,7 @@ export const back = defineTool({
     description: "Go back one entry in browser history; returns a snapshot.",
     parameters: Type.Object({}),
     async execute(_id, _params, signal) {
-        const page = await browser.page();
+        const page = await browser.page()
         return mutex.run(page, async () => {
             try {
                 await withAbort(
@@ -75,18 +75,18 @@ export const back = defineTool({
                         timeout: NAV_TIMEOUT,
                     }),
                     signal,
-                );
+                )
             } catch (e) {
-                throw new Error(`back failed: ${shortError(e)}`);
+                throw new Error(`back failed: ${shortError(e)}`)
             }
-            const snap = await captureSnapshot(page);
+            const snap = await captureSnapshot(page)
             return {
                 content: [{ type: "text" as const, text: snap.text }],
                 details: { url: snap.url, title: snap.title, refs: snap.count },
-            };
-        });
+            }
+        })
     },
-});
+})
 
 export const forward = defineTool({
     name: "browser_forward",
@@ -94,7 +94,7 @@ export const forward = defineTool({
     description: "Go forward one entry in browser history; returns a snapshot.",
     parameters: Type.Object({}),
     async execute(_id, _params, signal) {
-        const page = await browser.page();
+        const page = await browser.page()
         return mutex.run(page, async () => {
             try {
                 await withAbort(
@@ -103,18 +103,18 @@ export const forward = defineTool({
                         timeout: NAV_TIMEOUT,
                     }),
                     signal,
-                );
+                )
             } catch (e) {
-                throw new Error(`forward failed: ${shortError(e)}`);
+                throw new Error(`forward failed: ${shortError(e)}`)
             }
-            const snap = await captureSnapshot(page);
+            const snap = await captureSnapshot(page)
             return {
                 content: [{ type: "text" as const, text: snap.text }],
                 details: { url: snap.url, title: snap.title, refs: snap.count },
-            };
-        });
+            }
+        })
     },
-});
+})
 
 export const waitFor = defineTool({
     name: "browser_wait_for",
@@ -144,8 +144,8 @@ export const waitFor = defineTool({
         ),
     }),
     async execute(_id, params, signal) {
-        const page = await browser.page();
-        const timeout = params.timeoutMs ?? 15_000;
+        const page = await browser.page()
+        const timeout = params.timeoutMs ?? 15_000
         return mutex.run(page, async () => {
             try {
                 if (params.text) {
@@ -158,7 +158,7 @@ export const waitFor = defineTool({
                             { timeout },
                         ),
                         signal,
-                    );
+                    )
                 } else if (params.urlContains) {
                     await withAbort(
                         page.waitForURL(
@@ -166,25 +166,25 @@ export const waitFor = defineTool({
                             { timeout },
                         ),
                         signal,
-                    );
+                    )
                 } else if (params.load) {
                     await withAbort(
                         page.waitForLoadState(params.load, { timeout }),
                         signal,
-                    );
+                    )
                 } else {
                     throw new Error(
                         "browser_wait_for: must set one of text, urlContains, or load",
-                    );
+                    )
                 }
             } catch (e) {
-                throw new Error(`wait_for failed: ${shortError(e)}`);
+                throw new Error(`wait_for failed: ${shortError(e)}`)
             }
-            const snap = await captureSnapshot(page);
+            const snap = await captureSnapshot(page)
             return {
                 content: [{ type: "text" as const, text: snap.text }],
                 details: { url: snap.url, title: snap.title, refs: snap.count },
-            };
-        });
+            }
+        })
     },
-});
+})

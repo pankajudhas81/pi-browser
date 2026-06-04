@@ -5,10 +5,10 @@
  * page list inside the shared browser context.
  */
 
-import { defineTool } from "@earendil-works/pi-coding-agent";
-import { Type } from "typebox";
-import { browser } from "../browser";
-import { captureSnapshot } from "../snapshot";
+import { defineTool } from "@earendil-works/pi-coding-agent"
+import { Type } from "typebox"
+import { browser } from "../browser"
+import { captureSnapshot } from "../snapshot"
 
 export const tabsList = defineTool({
     name: "browser_tabs_list",
@@ -17,14 +17,14 @@ export const tabsList = defineTool({
         "List tabs owned by this pi session (index, url, title). The active tab has * next to its index.",
     parameters: Type.Object({}),
     async execute() {
-        await browser.page(); // ensure browser is up
-        const tabs = browser.listTabs();
-        const titles = await Promise.all(tabs.map((t) => t.title));
-        const active = browser.activeIndex();
+        await browser.page() // ensure browser is up
+        const tabs = browser.listTabs()
+        const titles = await Promise.all(tabs.map((t) => t.title))
+        const active = browser.activeIndex()
         const lines = tabs.map((t, i) => {
-            const marker = i === active ? "*" : " ";
-            return `${marker} [${t.index}] ${titles[i]}  ${t.url}`;
-        });
+            const marker = i === active ? "*" : " "
+            return `${marker} [${t.index}] ${titles[i]}  ${t.url}`
+        })
         return {
             content: [
                 {
@@ -33,9 +33,9 @@ export const tabsList = defineTool({
                 },
             ],
             details: { count: tabs.length, active },
-        };
+        }
     },
-});
+})
 
 export const tabsNew = defineTool({
     name: "browser_tabs_new",
@@ -46,14 +46,14 @@ export const tabsNew = defineTool({
         url: Type.Optional(Type.String()),
     }),
     async execute(_id, params) {
-        await browser.page();
-        const p = await browser.newTab();
+        await browser.page()
+        const p = await browser.newTab()
         if (params.url) {
             await p.goto(params.url, {
                 waitUntil: "domcontentloaded",
                 timeout: 30_000,
-            });
-            const snap = await captureSnapshot(p);
+            })
+            const snap = await captureSnapshot(p)
             return {
                 content: [{ type: "text" as const, text: snap.text }],
                 details: {
@@ -61,15 +61,15 @@ export const tabsNew = defineTool({
                     title: snap.title,
                     refs: snap.count,
                 },
-            };
+            }
         }
-        const blankTitle = await p.title();
+        const blankTitle = await p.title()
         return {
             content: [{ type: "text" as const, text: "Opened blank tab." }],
             details: { url: p.url(), title: blankTitle, refs: 0 },
-        };
+        }
     },
-});
+})
 
 export const tabsSelect = defineTool({
     name: "browser_tabs_select",
@@ -80,16 +80,16 @@ export const tabsSelect = defineTool({
         index: Type.Number(),
     }),
     async execute(_id, params) {
-        await browser.page();
-        browser.selectTab(params.index);
-        const page = await browser.page();
-        const snap = await captureSnapshot(page);
+        await browser.page()
+        browser.selectTab(params.index)
+        const page = await browser.page()
+        const snap = await captureSnapshot(page)
         return {
             content: [{ type: "text" as const, text: snap.text }],
             details: { url: snap.url, title: snap.title, refs: snap.count },
-        };
+        }
     },
-});
+})
 
 export const tabsClose = defineTool({
     name: "browser_tabs_close",
@@ -99,13 +99,13 @@ export const tabsClose = defineTool({
         index: Type.Number(),
     }),
     async execute(_id, params) {
-        await browser.page();
-        await browser.closeTab(params.index);
+        await browser.page()
+        await browser.closeTab(params.index)
         return {
             content: [
                 { type: "text" as const, text: `Closed tab ${params.index}.` },
             ],
             details: { closedIndex: params.index },
-        };
+        }
     },
-});
+})
