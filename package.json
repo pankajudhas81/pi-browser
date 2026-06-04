@@ -1,0 +1,60 @@
+{
+    "name": "@pankajudhas81/pi-browser",
+    "version": "0.1.0",
+    "description": "Browser automation tools for pi via Playwright (shared Chromium across sessions)",
+    "keywords": [
+        "pi",
+        "pi-package",
+        "browser",
+        "playwright",
+        "automation"
+    ],
+    "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/pankajudhas81/pi-browser.git"
+    },
+    "files": [
+        "src",
+        "skills"
+    ],
+    "type": "module",
+    "module": "src/index.ts",
+    "publishConfig": {
+        "access": "public"
+    },
+    "scripts": {
+        "build": "tsc",
+        "test": "echo \"no tests yet\"",
+        "lint": "oxlint && oxfmt --check .",
+        "lint:fix": "oxlint --fix . && oxfmt --write .",
+        "format": "oxfmt --write .",
+        "prepublishOnly": "pnpm run build"
+    },
+    "dependencies": {
+        "playwright": "^1.49.0"
+    },
+    "devDependencies": {
+        "@earendil-works/pi-ai": "latest",
+        "@earendil-works/pi-coding-agent": "latest",
+        "@types/node": "^25.5.0",
+        "oxfmt": "0.41.0",
+        "oxlint": "1.56.0",
+        "typebox": "^1.1.38",
+        "typescript": "^5.9.3"
+    },
+    "peerDependencies": {
+        "@earendil-works/pi-ai": "*",
+        "@earendil-works/pi-coding-agent": "*",
+        "typebox": "*"
+    },
+    "packageManager": "pnpm@10.32.1",
+    "pi": {
+        "extensions": [
+            "./src/index.ts"
+        ],
+        "skills": [
+            "./skills"
+        ]
+    }
+}
