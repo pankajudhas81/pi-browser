@@ -11,5 +11,12 @@
     "arrowParens": "always",
     "bracketSameLine": false,
     "bracketSpacing": true,
-    "ignorePatterns": ["AGENTS.md", "dist", "node_modules", "test-results"]
+    "ignorePatterns": [
+        "CHANGELOG.md",
+        "AGENTS.md",
+        "CLAUDE.md",
+        "dist",
+        "node_modules",
+        "test-results"
+    ]
 }

@@ -1,0 +1,47 @@
+# ---------------------------------------------------------------------------
+# Graphify ignore — keep the knowledge graph focused on first-party source.
+# Exclude vendored deps, build output, lockfiles, and generated artifacts.
+# ---------------------------------------------------------------------------
+
+# Dependencies / vendored code
+node_modules/
+.pnpm-store/
+.npm/
+docker-data/
+
+# Build / compiled output
+dist/
+build/
+target/
+**/target/
+.next/
+.turbo/
+.cache/
+*.tsbuildinfo
+
+# Code intelligence outputs
+graphify-out/
+.gitnexus/
+
+# Logs
+logs/
+*.log
+
+# Coverage / test artifacts
+coverage/
+.nyc_output/
+test-results/
+
+# Lockfiles (noise, not logic)
+pnpm-lock.yaml
+package-lock.json
+yarn.lock
+Cargo.lock
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/
+
+# VCS internals
+.git/
